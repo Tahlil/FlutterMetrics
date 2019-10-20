@@ -1,0 +1,26 @@
+{
+  "name": "AESinJS",
+  "version": "1.0.0",
+  "description": "AES implementation using Electron JS",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --watch * --exec \"electron .\""
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "Electron",
+    "AES",
+    "encryption"
+  ],
+  "author": "Tahlil",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "6.0.7",
+    "nodemon": "^1.19.4"
+  },
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "jquery": "^3.4.1",
+    "popper.js": "^1.16.0"
+  }
+}

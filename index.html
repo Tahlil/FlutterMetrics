@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <script>
+      let $ = require("jquery");
+    </script>
+    <script>
+      require("popper.js");
+    </script>
+    <script>
+      require("bootstrap");
+    </script>
+    <title>Hello World!</title>
+  </head>
+  <body>
+      <nav
+      class="navbar navbar-expand-md navbar-light fixed-top mb-5"
+      id="main-nav"
+    >
+      <div class="container bg-white border border-bottom-2">
+        <a href="#home" class="navbar-brand">
+          <img src="img/google-flutter-logo.png" width="77" height="77" alt="" />
+          <h1 class="d-inline align-middle badge badge-dark p-4">Caption</h1>
+        </a>
+        <button
+          class="navbar-toggler"
+          data-toggle="collapse"
+          data-target="#navbarCollapse"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse bg-info w-100" id="navbarCollapse">
+          <ul class="navbar-nav ml-auto p-5">
+            <li class="nav-item mr-2">
+              <button class="btn btn-primary text-white" id="btn1"><a href="#btn1" class="nav-link text-white">Button 1</a></button>
+            </li>
+            <li class="nav-item">
+              <button class="btn btn-primary text-white" id="btn2"><a href="#btn2" class="nav-link text-white">Button 2</a></button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+
+    <!-- You can also require other files to run in this process -->
+    <script src="./renderer.js"></script>
+  </body>
+</html>
