@@ -12,7 +12,8 @@
     <script>
       require("bootstrap");
     </script>
-    <title>Hello World!</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <title>Software metric</title>
   </head>
   <body>
       <nav
@@ -22,7 +23,7 @@
       <div class="container bg-white border border-bottom-2">
         <a href="#home" class="navbar-brand">
           <img src="img/google-flutter-logo.png" width="77" height="77" alt="" />
-          <h1 class="d-inline align-middle badge badge-dark p-4">Caption</h1>
+          <h1 class="d-inline align-middle badge badge-dark p-4">Software metrics</h1>
         </a>
         <button
           class="navbar-toggler"
@@ -34,17 +35,25 @@
         <div class="collapse navbar-collapse bg-info w-100" id="navbarCollapse">
           <ul class="navbar-nav ml-auto p-5">
             <li class="nav-item mr-2">
-              <button class="btn btn-primary text-white" id="btn1"><a href="#btn1" class="nav-link text-white">Button 1</a></button>
+                <div class="upload-btn-wrapper">
+                    <button class="upload-btn">Upload Flutter Project</button>
+                    <input type="file" id="myFile" webkitdirectory onchange='getFilename(this)'/>
+                </div>
             </li>
             <li class="nav-item">
-              <button class="btn btn-primary text-white" id="btn2"><a href="#btn2" class="nav-link text-white">Button 2</a></button>
+              <button class="btn btn-primary text-white" id="btn2"><a href="#btn2" class="nav-link text-white"></a>Button 2</a></button>
             </li>
           </ul>
         </div>
       </div>
     </nav>
-    
-
+    <div class="main-section">
+        
+    </div>
+    <script>
+      const { ipcRenderer } = require("electron");
+    </script>
+    <script src="./FileHelper/fileUIHelper.js"></script>
     <!-- You can also require other files to run in this process -->
     <script src="./renderer.js"></script>
   </body>
