@@ -1,6 +1,7 @@
 // Modules to control application life and create native browser window
 const { globalShortcut, app, BrowserWindow } = require('electron');
 const { ipcMain } = require('electron')
+const fileHelper = require('./FileHelper/fileElctronHelper');
 const path = require('path')
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -57,6 +58,13 @@ class DesktopApp {
       })
     }
 
+    setUpFolderCheckListener(){
+      this.ipcMain.on('folder-check', (event, path) => {
+        let isFlutterProject = fileHelper.checkFlutterPrj(path);
+        event.sender.send('checked-folder', isFlutterProject);
+      })
+    }
+
     setUpSmellListener(){
       this.ipcMain.on('smell', (event, _) => {
         event.sender.send('asynchronous-reply', {});
@@ -72,6 +80,7 @@ class DesktopApp {
     setUpAllListener() {
       this.setUpMetricListener();
       this.setUpSmellListener();
+      this.setUpFolderCheckListener();
     }
 }
 
