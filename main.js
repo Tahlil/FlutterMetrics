@@ -58,10 +58,31 @@ class DesktopApp {
       })
     }
 
+    checkFlutterProject(path){
+      let splitedPath = path.split("\\"), isFlutterProject = fileHelper.checkFlutterPrj(path);
+      isFlutterProject.projectName = splitedPath[splitedPath.length-1];
+      return isFlutterProject;
+    }    
+
     setUpFolderCheckListener(){
-      this.ipcMain.on('folder-check', (event, path) => {
-        let isFlutterProject = fileHelper.checkFlutterPrj(path);
-        event.sender.send('checked-folder', isFlutterProject);
+      this.ipcMain.on('folder-check', (event, options) => {
+        if (options.multipleProject) {
+          let flutterProjects = [], folderPaths = fileHelper.getDirectories(options.path);
+          //console.log(folderPaths);
+          for (let index = 0; index < folderPaths.length; index++) {
+            const path = folderPaths[index];
+            //console.log("Path: " + path);
+            let isFlutterProject =  this.checkFlutterProject(path)
+            if(isFlutterProject.isFlutterProject){
+              flutterProjects.push(isFlutterProject);
+            }
+          }
+          event.sender.send('checked-folders', {flutterProjects: flutterProjects});          
+        }
+        else{
+          let isFlutterProject = this.checkFlutterProject(options.path);
+          event.sender.send('checked-folder', isFlutterProject);
+        }
       })
     }
 

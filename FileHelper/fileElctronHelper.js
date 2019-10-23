@@ -1,5 +1,10 @@
 const { readdirSync } = require('fs')
 
+const getDirectories = source =>
+  readdirSync(source, { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => source+"\\"+dirent.name)
+
 const walkSync = function(dir, filelist) {
     var fs = fs || require('fs'),
         files = fs.readdirSync(dir);
@@ -17,15 +22,25 @@ const walkSync = function(dir, filelist) {
   };
 //.filter(dirent => dirent.isDirectory())
 
-checkFlutterPrj = function (folderPath) {
+const getAllDartFiles = function (flutterProjectPath) {
+  let filesInLib = walkSync(flutterProjectPath), dartFiles = [];
+  for (let index = 0; index < filesInLib.length; index++) {
+    const file = filesInLib[index];
+    if(file.name.endsWith('.dart')){
+      dartFiles.push( {name: file.name,path: file.path});
+    }
+  }
+  return dartFiles;
+}
+
+const checkFlutterPrj = function (folderPath) {
   let allFilesAndFolders = walkSync(folderPath+"/");
   console.log("All files: ");
   //console.log(allFilesAndFolders);
   let hasPubspecFile=false, hasLibFolder=false, pathToPubspec, pathToLib;
   for (let index = 0; index < allFilesAndFolders.length; index++) {
     const file = allFilesAndFolders[index];
-    if(file.name === "lib" && file.isDirectory){
-      
+    if(file.name === "lib" && file.isDirectory){    
       hasLibFolder = true;
       pathToLib = file.path;
     }
@@ -37,10 +52,18 @@ checkFlutterPrj = function (folderPath) {
   }
   console.log("Pubspec: " + pathToPubspec);
   console.log("lib: " + pathToLib) ;
-  
-  return true;
+  let isFlutterProject = hasLibFolder && hasPubspecFile, dartFiles = [];
+  if (isFlutterProject) {
+    //pathToLib[pathToLib.length-1] = "\\";
+    console.log(pathToLib);
+    pathToLib = pathToLib.replace("/", "\\");
+    console.log(pathToLib);
+    dartFiles = getAllDartFiles(pathToLib+"/");
+  }
+  return {isFlutterProject: isFlutterProject,  pathToLib: pathToLib, pathToPubspec: pathToPubspec, dartFiles: dartFiles};
 }
 
 module.exports = {
-  checkFlutterPrj: checkFlutterPrj
+  checkFlutterPrj: checkFlutterPrj,
+  getDirectories: getDirectories
 }

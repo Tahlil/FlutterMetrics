@@ -10,18 +10,18 @@
   background-color: white;
   padding: 8px 20px;
   border-radius: 8px;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: bold;
 }
 
 .upload-btn-wrapper input[type=file] {
-  font-size: 100px;
+  font-size: 55px;
   position: absolute;
   left: 0;
   top: 0;
   opacity: 0;
 }
 
-.main-section{
-  margin-top: 165px;
+#main-section{
+  margin-top: 185px;
 }

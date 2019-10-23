@@ -13,6 +13,8 @@
       require("bootstrap");
     </script>
     <link rel="stylesheet" href="./css/style.css">
+    <link href="./node_modules/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="./node_modules/tabulator-tables/dist/js/tabulator.min.js"></script>
     <title>Software metric</title>
   </head>
   <body>
@@ -36,22 +38,29 @@
           <ul class="navbar-nav ml-auto p-5">
             <li class="nav-item mr-2">
                 <div class="upload-btn-wrapper">
-                    <button class="upload-btn">Upload Flutter Project</button>
-                    <input type="file" id="myFile" webkitdirectory onchange='getFilename(this)'/>
+                    <button class="upload-btn">Upload Single Flutter Project</button>
+                    <input type="file" id="myFile" webkitdirectory onchange='getFiles(this)'/>
                 </div>
             </li>
             <li class="nav-item">
-              <button class="btn btn-primary text-white" id="btn2"><a href="#btn2" class="nav-link text-white"></a>Button 2</a></button>
+                <div class="upload-btn-wrapper">
+                    <button class="upload-btn">Upload Multiple Flutter Project</button>
+                    <input type="file" id="myFiles" webkitdirectory onchange='getAllProjects(this)'/>
+                </div>
             </li>
           </ul>
         </div>
       </div>
     </nav>
-    <div class="main-section">
-        
+    <div id="main-section">
+        <div id="res-table">
+
+        </div>
     </div>
     <script>
       const { ipcRenderer } = require("electron");
+      // ipcRenderer.on("asynchronous-reply", (event, res) => {
+
     </script>
     <script src="./FileHelper/fileUIHelper.js"></script>
     <!-- You can also require other files to run in this process -->
