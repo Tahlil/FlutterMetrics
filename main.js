@@ -1,13 +1,22 @@
 // Modules to control application life and create native browser window
 const { globalShortcut, app, BrowserWindow } = require('electron');
 const { ipcMain } = require('electron')
-const fileHelper = require('./FileHelper/fileElctronHelper');
+const fileHelper = require('./FileHelper/fileElectronHelper');
+const metricHelper = require('./metrics');
 const path = require('path')
+
+const metricsMap = {
+  mood: (dartFilePaths) => metricHelper.calculateMOODMetrics(dartFilePaths),
+  ck: (dartFilePaths) => metricHelper.calculateCKMetrics(dartFilePaths),
+  trd: (dartFilePaths) => metricHelper.calculateTraditionalMetrics(dartFilePaths),
+  all: (dartFilePaths) => {
+    return {...this.mood(dartFilePaths), ...this.ck(dartFilePaths), ...this.trd(dartFilePaths)}
+  }
+}
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
-
 class DesktopApp {
   constructor() {
     this.app = app;
@@ -77,7 +86,7 @@ class DesktopApp {
               flutterProjects.push(isFlutterProject);
             }
           }
-          event.sender.send('checked-folders', {flutterProjects: flutterProjects});          
+          event.sender.send('checked-folders', {flutterProjects: flutterProjects});      
         }
         else{
           let isFlutterProject = this.checkFlutterProject(options.path);
@@ -94,7 +103,15 @@ class DesktopApp {
 
     setUpMetricListener(){
       ipcMain.on('metric', (event, data) => {
-        event.sender.send('end-process', {});
+        let res;
+        if(data.hasOneProject){
+          res = metricsMap[data.metricType](data.dartFilePaths);
+          event.sender.send('project-metrics', [{...res, projectName:data.projectName}]);
+        }
+        else{
+          //res = metricsMap[data.metricType](data.dartFilePaths);
+          event.sender.send('mult-projects-metrics', {});
+        }
       }) 
     }
 

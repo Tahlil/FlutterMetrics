@@ -1,4 +1,14 @@
-const { readdirSync } = require('fs')
+const { readdirSync, readFileSync } = require('fs')
+
+//.map(chunk => chunk.replace(/(?!\r)\n/g, '\n\r'))
+const getAllLines = function (filePath) { 
+  console.log("filePath");
+  console.log(filePath);
+  return readFileSync(filePath, 'utf-8').split('\n').map(chunk => chunk.replace('\r', '')).filter(line => {
+    console.log("line: " + line);
+    return line !== "" ;
+  });
+}
 
 const getDirectories = source =>
   readdirSync(source, { withFileTypes: true })
@@ -11,7 +21,7 @@ const walkSync = function(dir, filelist) {
     filelist = filelist || [];
     files.forEach(function(file) {
       if (fs.statSync(dir + file).isDirectory()) {
-        filelist = walkSync(dir + file + '/', filelist);
+        filelist = walkSync(dir + file + '\\', filelist);
         filelist.push({name: file,isDirectory: true, path: dir + file});  
       }
       else {
@@ -58,12 +68,13 @@ const checkFlutterPrj = function (folderPath) {
     console.log(pathToLib);
     pathToLib = pathToLib.replace("/", "\\");
     console.log(pathToLib);
-    dartFiles = getAllDartFiles(pathToLib+"/");
+    dartFiles = getAllDartFiles(pathToLib+"\\");
   }
   return {isFlutterProject: isFlutterProject,  pathToLib: pathToLib, pathToPubspec: pathToPubspec, dartFiles: dartFiles};
 }
 
 module.exports = {
   checkFlutterPrj: checkFlutterPrj,
-  getDirectories: getDirectories
+  getDirectories: getDirectories, 
+  getAllLines: getAllLines
 }
