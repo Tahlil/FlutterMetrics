@@ -52,10 +52,10 @@ function getMetricsForProject(metricType) {
   ipcRenderer.send('metric', {hasOneProject: true, dartFilePaths:filterPaths(currentProject.dartFiles), metricType: metricType, projectName:currentProject.projectName});
 }
 
-function getMetricsForProjects(metrics) {
-  console.log("Projects metric: " + metrics);
+function getMetricsForProjects(metricType) {
+  console.log("Projects metric: " + metricType);
   console.log(projects);
-  ///ipcRenderer.send("metric", {multipleProject: true, path:path});
+  ipcRenderer.send("metric", {hasOneProject: false, metricType: metricType, projects:projects.flutterProjects});
   
 }
 

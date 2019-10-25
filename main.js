@@ -105,12 +105,24 @@ class DesktopApp {
       ipcMain.on('metric', (event, data) => {
         let res;
         if(data.hasOneProject){
+          console.log("\n\n\n\n\n\nSingle\n\n\n");
+          
           res = metricsMap[data.metricType](data.dartFilePaths);
           event.sender.send('project-metrics', [{...res, projectName:data.projectName}]);
         }
         else{
+          console.log("\n\n\n\n\n\njfsl;fjf\n\n\n");
+          //console.log(data.projects);
+          
+          res = [];
+          for (let index = 0; index < data.projects.length; index++) {
+            console.log("Project " + index + ":");
+            console.log(data.projects[index]);
+            const resOneProject = metricsMap[data.metricType](data.projects[index].dartFiles.map(file => file.path));
+            res.push({...resOneProject, projectName:data.projects[index].projectName})
+          }
           //res = metricsMap[data.metricType](data.dartFilePaths);
-          event.sender.send('mult-projects-metrics', {});
+          event.sender.send('mult-projects-metrics', res);
         }
       }) 
     }

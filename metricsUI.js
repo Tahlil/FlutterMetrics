@@ -20,7 +20,8 @@ ipcRenderer.on('project-metrics', (event, res) => {
 });
 
 ipcRenderer.on("mult-projects-metrics", (event, res) => {
-  // console.log(res);
+  console.log(res);
+  displayMetrics(res);
   // currentProject = {projectName: res.projectName, dartFiles: res.dartFiles}
   // $("#main-section").html(getMetricButtons(true)+  getHTMLforOnePrj(res.isFlutterProject, res.dartFiles, res.projectName));
 });
