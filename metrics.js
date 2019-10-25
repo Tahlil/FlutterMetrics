@@ -81,6 +81,81 @@ function reverse_this(str) {
   return temp;
 }
 
+function getMethodCount(singleline){
+  let reverse_method_name = '';
+  let method_name = '';
+  for(let i=singleline.length-1; i>=0; i--){
+      if(singleline[i]==' '){
+          if(reverse_method_name.length>0) {
+              break;
+          } continue;
+      }
+      else if(isValidCharacter(singleline[i])){
+          reverse_method_name += singleline[i];
+      } else {
+          return '';
+      }
+  } 
+  for(let i=reverse_method_name.length-1; i>=0; i--){
+      method_name += reverse_method_name[i];
+  }
+  for(let i=0; i<keywords.length; i++){
+      if(method_name==keywords[i]){
+          return '';
+      }
+  }
+  return method_name;
+}
+
+function findMethod(lines){
+  let public_methods = [];
+  let private_methods = [];
+  for(let k=0; k<lines.length; k++) {
+      let singleline = cleanLineBeforeProcessing(lines[k]);
+      let found = false;
+      let i;
+      for(i=singleline.length-1; i>=0; i--){
+          if(singleline[i]==' ') continue;
+          else {
+              if(singleline[i]=='{'){
+                  found=true; 
+              } break;
+          }
+      }
+      if(!found) {
+          continue;
+      }
+
+      let left_bracket_cnt=0, right_bracket_cnt=0;
+      for(--i; i>=0; i--) {
+          if(singleline[i]==' ') continue;
+          if(singleline[i]==')') {
+              right_bracket_cnt++;
+          } else if(singleline[i]=='(' && right_bracket_cnt>left_bracket_cnt){
+              left_bracket_cnt++;
+          } 
+          if(right_bracket_cnt>0 && right_bracket_cnt==left_bracket_cnt){
+              break;
+          }
+      }
+
+      if(!(left_bracket_cnt>0 && right_bracket_cnt>0 && left_bracket_cnt==right_bracket_cnt)){
+          continue;
+      }
+      
+      let method = getMethodCount(singleline.substring(0, i));
+      
+      if(method.length>0){
+          if(method[0]=='_'){
+              private_methods.push(method);
+          } else {
+              public_methods.push(method);
+          }
+      }
+  }
+  return [public_methods, private_methods];  
+}
+
 function findAttribute(lines) {
   let public_attributes = [];
   let private_attributes = [];
@@ -131,10 +206,6 @@ function findAttribute(lines) {
 }
 
 
-function findMethod(lines){
-
-}
-
 function classIdentify(line) {
   return line.startsWith("class");
 }
@@ -177,9 +248,19 @@ function findClasses(lines) {
   return classes;
 }
 // //mood
-const calculateMHF = function () { 
-  let all_methods = findMethod(file_path);    
-  return [all_methods[1].length, (all_methods[0].length+all_methods[1].length)];
+const calculateMHF = function (linesWithoutCommentsInFiles, fileNames) {    
+  let totalPrivate=0, total=0;  
+  for (let index = 0; index < linesWithoutCommentsInFiles.length; index++) {
+    console.log("File name: " + fileNames[index]);
+    let methods = findMethod(linesWithoutCommentsInFiles[index]);
+    let numPrivateAttribute = methods[0].length, numTotalAttributes = methods[0].length + methods[1].length;
+    if (numTotalAttributes === 0) {
+      continue;
+    }
+    totalPrivate += numPrivateAttribute;
+    total += numTotalAttributes;    
+  }
+  return total === 0 ? 0.00+"%" : (totalPrivate/total*100).toFixed(2)+"%";
 }
 
 const calculateAHF = function (linesWithoutCommentsInFiles) { 
@@ -195,9 +276,11 @@ const calculateAHF = function (linesWithoutCommentsInFiles) {
     total += numTotalAttributes; 
     //console.log(attributes);
   }
-  return total === 0 ? 0.0+"%" : (totalPrivate/total*100).toFixed(2)+"%";
+  return total === 0 ? 0.00+"%" : (totalPrivate/total*100).toFixed(2)+"%";
 }
-const calculateMIF = function () {  }
+const calculateMIF = function () { 
+  
+}
 const calculateAIF = function () {  }
 const calculatePOF = function () {  }
 const calculateCOF = function () {  }
@@ -305,9 +388,12 @@ const calculateMOODMetrics =function(dartFiles){
   let linesInFiles = getLinesInFiles(dartFiles);
   sloc = calculateSLOC(linesInFiles);
   let cpInfos = calculateCP(linesInFiles, sloc);
+  let fileNames = dartFiles.map(file => file.name);
+
   let linesWithoutCommentsInFiles = cpInfos.linesWithoutCommentsInFiles;
   ahf = calculateAHF(linesWithoutCommentsInFiles);
-  return {ahf: ahf}
+  mhf = calculateMHF(linesWithoutCommentsInFiles, fileNames); 
+  return {ahf: ahf, mhf: mhf}
 }
 const calculateCKMetrics = function(dartFiles){
   let wmc, dit, noc, cbo, rfc, lcom;

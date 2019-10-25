@@ -8,6 +8,7 @@ function displayMetrics(tabledata){
         {title:"Source Lines of Code (SLOC)", field:"sloc", sorter:"string"},
         {title:"Comment Percentage (CP)", field:"cp", sorter:"string"},
         {title:"Attribute Hiding Factor (AHF)", field:"ahf", sorter:"string"},
+        {title:"Method Hiding Factor (MHF)", field:"mhf", sorter:"string"},
 
         // {title:"Success", field:"hasPredicted", formatter:"tickCross", align:"center", width:100}
     ],
