@@ -5,7 +5,7 @@ const getAllLines = function (filePath) {
   console.log("filePath");
   console.log(filePath);
   return readFileSync(filePath, 'utf-8').split('\n').map(chunk => chunk.replace('\r', '')).filter(line => {
-    console.log("line: " + line);
+    //console.log("line: " + line);
     return line !== "" ;
   });
 }

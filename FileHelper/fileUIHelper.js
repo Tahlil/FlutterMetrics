@@ -42,20 +42,16 @@ const getMetricButtons = function (hasOneProject) {
   </div>`
 }
 
-function filterPaths(dartFiles) {
-  return dartFiles.map(file => file.path);
-}
-
 function getMetricsForProject(metricType) {
   console.log("metrics: " + metricType);
   console.log(currentProject.dartFiles);
-  ipcRenderer.send('metric', {hasOneProject: true, dartFilePaths:filterPaths(currentProject.dartFiles), metricType: metricType, projectName:currentProject.projectName});
+  ipcRenderer.send('metric', {hasOneProject: true, dartFiles:currentProject.dartFiles, metricType: metricType, projectName:currentProject.projectName});
 }
 
 function getMetricsForProjects(metricType) {
   console.log("Projects metric: " + metricType);
   console.log(projects);
-  ipcRenderer.send("metric", {hasOneProject: false, metricType: metricType, projects:projects.flutterProjects});
+  ipcRenderer.send('metric', {hasOneProject: false, metricType: metricType, projects:projects.flutterProjects});
   
 }
 

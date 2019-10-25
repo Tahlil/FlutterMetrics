@@ -6,11 +6,12 @@ const metricHelper = require('./metrics');
 const path = require('path')
 
 const metricsMap = {
-  mood: (dartFilePaths) => metricHelper.calculateMOODMetrics(dartFilePaths),
-  ck: (dartFilePaths) => metricHelper.calculateCKMetrics(dartFilePaths),
-  trd: (dartFilePaths) => metricHelper.calculateTraditionalMetrics(dartFilePaths),
-  all: (dartFilePaths) => {
-    return {...this.mood(dartFilePaths), ...this.ck(dartFilePaths), ...this.trd(dartFilePaths)}
+  mood: (dartFiles) => metricHelper.calculateMOODMetrics(dartFiles),
+  ck: (dartFiles) => metricHelper.calculateCKMetrics(dartFiles),
+  trd: (dartFiles) => metricHelper.calculateTraditionalMetrics(dartFiles),
+  all: function(dartFiles) {
+    console.log(this);
+    return {...this.mood(dartFiles), ...this.ck(dartFiles), ...this.trd(dartFiles)}
   }
 }
 
@@ -106,8 +107,7 @@ class DesktopApp {
         let res;
         if(data.hasOneProject){
           console.log("\n\n\n\n\n\nSingle\n\n\n");
-          
-          res = metricsMap[data.metricType](data.dartFilePaths);
+          res = metricsMap[data.metricType](data.dartFiles);
           event.sender.send('project-metrics', [{...res, projectName:data.projectName}]);
         }
         else{
@@ -118,11 +118,11 @@ class DesktopApp {
           for (let index = 0; index < data.projects.length; index++) {
             console.log("Project " + index + ":");
             console.log(data.projects[index]);
-            const resOneProject = metricsMap[data.metricType](data.projects[index].dartFiles.map(file => file.path));
+            const resOneProject = metricsMap[data.metricType](data.projects[index].dartFiles);
             res.push({...resOneProject, projectName:data.projects[index].projectName})
           }
           //res = metricsMap[data.metricType](data.dartFilePaths);
-          event.sender.send('mult-projects-metrics', res);
+          event.sender.send('project-metrics', res);
         }
       }) 
     }
