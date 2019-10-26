@@ -2,8 +2,8 @@ const { readdirSync, readFileSync } = require('fs')
 
 //.map(chunk => chunk.replace(/(?!\r)\n/g, '\n\r'))
 const getAllLines = function (filePath) { 
-  console.log("filePath");
-  console.log(filePath);
+  //console.log("filePath");
+  //console.log(filePath);
   return readFileSync(filePath, 'utf-8').split('\n').map(chunk => chunk.replace('\r', '')).filter(line => {
     //console.log("line: " + line);
     return line !== "" ;

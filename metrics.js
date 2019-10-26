@@ -68,21 +68,42 @@ const containsSemicolon = function(line){
 function checkArrowFunctions(lines) {
   let publicArrowFunc=[], privateArrowFunc=[];
   for (let index = 0; index < lines.length; index++) {
-    const line = lines[index];
+    let line = "";
+    if(lines[index]){
+      line = lines[index].trim();
+    }
+    else{
+      continue;
+    }
+    // if(name === "ChatScreen"){
+    //   console.log("Line:   " + line);
+    // }
     let splitedLine = line.split(" "), methodName = "";
     if(splitedLine[2]){
-      if(isABuiltInType(splitedLine[0]) && isVariableName(splitedLine[1]) && (splitedLine[2] === "async" || splitedLine[2][0] === "(") && line.split(")")[1].trim().startsWith("=>") ){
-        methodName = splitedLine[1]
+      if(isTypeName(splitedLine[0]) && isVariableName(splitedLine[1]) && (splitedLine[2] === "async" || splitedLine[2][0] === "(")){
+        if(line.split(")")[1]){
+          if(line.split(")")[1].trim().startsWith("=>")){
+            methodName = splitedLine[1]
+            console.log("One space");
+
+          }
+        }
       } 
-      if(isABuiltInType(splitedLine[0]) && isVariableName(splitedLine[1].split("(")[0]) && line.split(")")[1].trim().startsWith("=>") ){
-        methodName = splitedLine[1].split("(")[0];
+      if(isTypeName(splitedLine[0]) && isVariableName(splitedLine[1].split("(")[0])){
+        if(line.split(")")[1]){
+          if(line.split(")")[1].trim().startsWith("=>")){
+            methodName = splitedLine[1].split("(")[0]
+            console.log("One space");   
+          }
+        }
       }
     }
     if(methodName !== ""){
       let methodLines = [];
       while(index < lines.length){
         methodLines.push(line);
-        if(containsSemicolon()){
+        line = lines[index];
+        if(containsSemicolon(line)){
           break;
         }
         index++;
@@ -460,7 +481,6 @@ const getLinesInFiles= function (dartFiles) {
 function getMethodsInFiles(classesInFiles,linesWithoutCommentsInFiles){
   let methodsInFiles = [];
   for (let index = 0; index < classesInFiles.length; index++) {
-    console.log("Num " + (index+1) + ": ");
     //console.log(classesInFiles[index]);
     const classes = classesInFiles[index].classes;
     const lines = linesWithoutCommentsInFiles[index];
@@ -505,6 +525,19 @@ const calculateMOODMetrics =function(dartFiles){
   let fileNames = dartFiles.map(file => file.name);
 
   let linesWithoutCommentsInFiles = cpInfos.linesWithoutCommentsInFiles;
+  let classesInFiles = getClassesFromAllFile(linesWithoutCommentsInFiles, fileNames);
+
+  for (let index = 0; index < classesInFiles.length; index++) {
+    const classes = classesInFiles[index].classes;
+    console.log("File Name: " + fileNames[index]);    
+    for (let j = 0; j < classes.length; j++) {
+      const oneClass = classes[j];
+      console.log("Class name: " + oneClass.name);
+      let linesInClass = oneClass.lines;
+      let arrowFunctions = checkArrowFunctions(linesInClass);
+      console.log(arrowFunctions);
+    }
+  }
   ahf = calculateAHF(linesWithoutCommentsInFiles);
   mhf = calculateMHF(linesWithoutCommentsInFiles, fileNames); 
   return {ahf: ahf, mhf: mhf}
