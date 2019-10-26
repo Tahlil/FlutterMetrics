@@ -84,7 +84,7 @@ function checkArrowFunctions(lines) {
         if(line.split(")")[1]){
           if(line.split(")")[1].trim().startsWith("=>")){
             methodName = splitedLine[1]
-            console.log("One space");
+            //console.log("One space");
 
           }
         }
@@ -93,7 +93,7 @@ function checkArrowFunctions(lines) {
         if(line.split(")")[1]){
           if(line.split(")")[1].trim().startsWith("=>")){
             methodName = splitedLine[1].split("(")[0]
-            console.log("One space");   
+            //console.log("One space");   
           }
         }
       }
@@ -214,6 +214,8 @@ function getMethods(linesInClass, methods, arrowMethods){
             break;
           }
           index++;
+          if(!linesInClass[index])
+            break;
           line = linesInClass[index].trim();  
         }
     }
@@ -444,10 +446,111 @@ function getClassesFromAllFile(linesInFiles, fileNames){
   return classesInFiles;
 }
 
-// // //traditional
-const calculateCC = function () { 
-  let nodes = 0, edges = 0;
+const checkStartsWithMethod = function(part, methodNames){
+  let methodFound = false, method = "";
+  for (const methodName of methodNames) {
+    if(part.startsWith(methodName)){
+      method = methodName;
+      methodFound = true;
+    }
+  }
+  return {method: method, methodFound:methodFound};
+}
+
+const ccFromOtherMethodCall = function(line, allMethods){
+  //console.log(allMethods);
+  let cc = 0, allMethodNames = Object.keys(allMethods), splittedLine;
+  if(allMethodNames.length === 0)
+    return 0; 
+  line = line.replace(/  +/g, ' ');
+  if(line.includes('\"')){
+    splittedLine = line.split('\"');
+  }
+  else if(line.includes('\'')){
+    splittedLine = line.split('\'');    
+  }
+  else{
+    splittedLine = line.split('\"');
+  }
+  let i = 0;
+  while(i < splittedLine.length){
+    let splitBySpace = splittedLine[i].split(' ');
+    for (let index = 0; index < splitBySpace.length; index++) {
+      const splited = splitBySpace[index];
+      let checkedMethod = checkStartsWithMethod(splited, allMethodNames); 
+      if(checkedMethod.methodFound){
+        let lines = allMethods[checkedMethod.method];
+        delete allMethods[checkedMethod.method];
+        cc += getCCOfAMethod(lines, allMethods);
+      }
+    }
+    i+=2;
+  }
+  return cc;
+}
+
+function getCCOfAMethod(linesOfMethod, allMethods) {
+  let nodes = 1, edges = 0, cc = 0;
+  if(linesOfMethod){
+    for (let index = 0; index < linesOfMethod.length; index++) {
+      const line = linesOfMethod[index];
+      if(line.startsWith("else if") || line.startsWith("if")){
+        nodes += 2;
+        edges += 3;
+      }
+      else if(line.startsWith("else")){
+        nodes ++;
+        edges ++;
+      }
+      else if(line.startsWith("while") || line.startsWith("do")  || line.startsWith("for")){
+        nodes += 2;
+        edges += 4;
+      }
+      else if(line.startsWith("case")){
+        nodes ++;
+        edges += 2;
+      }
+      if(index !== 0)
+        cc += ccFromOtherMethodCall(line, allMethods);
+    }
+  }
   
+  cc += (edges - nodes + 2);
+  return cc;
+}
+
+function getAllMethods(methodsInFiles) {
+  let methods = {};
+  for (let index = 0; index < methodsInFiles.length; index++) {
+    const methodsInFile = methodsInFiles[index];
+    for (let j = 0; j < methodsInFile.methodsInFile.length; j++) {
+      const method = methodsInFile.methodsInFile[j];
+      methods[method.name] = method.lines;
+    }  
+  }
+  return methods;  
+}
+
+//traditional
+const calculateCC = function (linesWithoutCommentsInFiles, fileNames) { 
+  let classesInFiles = getClassesFromAllFile(linesWithoutCommentsInFiles, fileNames);
+  let methodsInFiles = getMethodsInFiles(classesInFiles, linesWithoutCommentsInFiles);
+  //console.log("Methods in Files: ");
+  //console.log(methodsInFiles);
+  let allMethods = getAllMethods(methodsInFiles);
+  let allCCs = [];
+  for (let index = 0; index < methodsInFiles.length; index++) {
+    const methodsInFile = methodsInFiles[index];
+    console.log("FIle name: " + methodsInFile.fileName);
+    for (let j = 0; j < methodsInFile.methodsInFile.length; j++) {
+      const method = methodsInFile.methodsInFile[j];
+      console.log("Cyclometic complexity of " + method.name + " is:");
+      //console.log(allMethods);
+      let ccOfAMethod = getCCOfAMethod(method.lines, allMethods);
+      allCCs.push({cc: ccOfAMethod, methodName: method.name});
+    }
+  }
+  return allCCs;
 }
 
 const calculateSLOC = function (linesInFiles) { 
@@ -504,7 +607,6 @@ function getMethodsInFiles(classesInFiles,linesWithoutCommentsInFiles){
     //console.log(classesInFiles[index]);
     const classes = classesInFiles[index].classes;
     const lines = linesWithoutCommentsInFiles[index];
-    
     let currentFileName = classesInFiles[index].fileName;
     //console.log("File name : " + classesInFiles[index].fileName);
     for (let j = 0; j < classes.length; j++) {
@@ -529,25 +631,28 @@ const calculateTraditionalMetrics = function(dartFiles){
   sloc = calculateSLOC(linesInFiles);
   let cpInfos = calculateCP(linesInFiles, sloc);
   let fileNames = dartFiles.map(file => file.name);
-  let classesInFiles = getClassesFromAllFile(cpInfos.linesWithoutCommentsInFiles, fileNames);
-  let methodsInFiles = getMethodsInFiles(classesInFiles, cpInfos.linesWithoutCommentsInFiles);
-  //console.log("Methods in Files: ");
-  //console.log(methodsInFiles);
-  for (let index = 0; index < methodsInFiles.length; index++) {
-    const methodsInFile = methodsInFiles[index];
-    console.log("FIle name: " + methodsInFile.fileName);
-    for (let j = 0; j < methodsInFile.methodsInFile.length; j++) {
-      const method = methodsInFile.methodsInFile[j];
-      console.log(method.name);
-    }
-  }
+  let linesWithoutCommentsInFiles = cpInfos.linesWithoutCommentsInFiles;
   //console.log(classesInFiles);
-  //cc = calculateCC()
+  let ccInfos = calculateCC(linesWithoutCommentsInFiles, fileNames)
+  let ccs = ccInfos.map(ccInfo => ccInfo.cc);
+  cc = ccs.reduce((total, current) => {
+    return total + current
+  }, 0)/ccs.length;
   cp = cpInfos.cp
   return {
+    cc: cc.toFixed(2),
     sloc: sloc,
-    cp: cp
+    cp: cp,
   }  
+}
+
+const getNumberOfClasses = function(classesInFiles){
+  let totalNumberOfClass = 0;
+  for (let index = 0; index < classesInFiles.length; index++) {
+    const numberOfClasses = classesInFiles[index].classes.length;
+    totalNumberOfClass += numberOfClasses;
+  }
+  return totalNumberOfClass;
 }
 
 const calculateMOODMetrics =function(dartFiles){
@@ -577,7 +682,22 @@ const calculateMOODMetrics =function(dartFiles){
 }
 const calculateCKMetrics = function(dartFiles){
   let wmc, dit, noc, cbo, rfc, lcom;
-  return {};
+
+  let linesInFiles = getLinesInFiles(dartFiles);
+  sloc = calculateSLOC(linesInFiles);
+  let cpInfos = calculateCP(linesInFiles, sloc);
+  let fileNames = dartFiles.map(file => file.name);
+  let linesWithoutCommentsInFiles = cpInfos.linesWithoutCommentsInFiles;
+  //console.log(classesInFiles);
+  let classesInFiles = getClassesFromAllFile(linesWithoutCommentsInFiles, fileNames);
+  let numberOfClasses = getNumberOfClasses(classesInFiles);
+  let ccInfos = calculateCC(linesWithoutCommentsInFiles, fileNames)
+  let ccs = ccInfos.map(ccInfo => ccInfo.cc);
+  let cc = ccs.reduce((total, current) => {
+    return total + current
+  });
+  wmc = (cc/numberOfClasses).toFixed(2);
+  return {wmc: wmc};
 }
 
 module.exports = {

@@ -4,11 +4,13 @@ function displayMetrics(tabledata){
     layout:"fitColumns",
     data:tabledata, //load data into table
     columns:[
+        {title:"Avg. McCabe Cyclomatic Complexity(CC)", field:"cc", sorter:"string"},
         {title:"Project Name", field:"projectName", sorter:"string", width:200},
         {title:"Source Lines of Code (SLOC)", field:"sloc", sorter:"string"},
         {title:"Comment Percentage (CP)", field:"cp", sorter:"string"},
         {title:"Attribute Hiding Factor (AHF)", field:"ahf", sorter:"string"},
         {title:"Method Hiding Factor (MHF)", field:"mhf", sorter:"string"},
+        {title:"Weighted Method per Class (WMC)", field:"wmc", sorter:"string"},
 
         // {title:"Success", field:"hasPredicted", formatter:"tickCross", align:"center", width:100}
     ],
