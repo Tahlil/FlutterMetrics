@@ -1,7 +1,6 @@
 const fileHelper = require('./FileHelper/fileElectronHelper');
 const typesInDart = [""];
 
-
 var keywords = [
   'dynamic', 'show', 'as', 'import', 'static', 'assert', 'enum', 'in', 'super','async', 
   'export', 'switch', 'await', 'extends',	'sync', 'external', 'library', 'case', 'factory',
@@ -39,8 +38,64 @@ const isTypeName = function(name){
   return name[0] === name[0].toUpperCase() || (isABuiltInType(name));
 }
 
-const isVariableName = function(){
-  return nam  
+const isVariableName = function(name){
+  let valid = true;
+  for (const character of name) {
+    if(!isValidCharacter){
+      valid = false;
+      break;
+    }
+  }
+  return !keywords.includes(name) && valid;  
+}
+
+const containsSemicolon = function(line){
+  let hasFirstQuote = false, hasSecondQuote = false;
+  for (const c of line) {
+    if(c === "\'"){
+      hasFirstQuote = !hasFirstQuote;
+    }
+    else if(c === "\""){
+      hasSecondQuote = !hasSecondQuote;
+    }
+    else if(c === ";" && !hasFirstQuote && !hasSecondQuote){
+      return true;
+    }
+  }
+  return false;
+}
+
+function checkArrowFunctions(lines) {
+  let publicArrowFunc=[], privateArrowFunc=[];
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    let splitedLine = line.split(" "), methodName = "";
+    if(splitedLine[2]){
+      if(isABuiltInType(splitedLine[0]) && isVariableName(splitedLine[1]) && (splitedLine[2] === "async" || splitedLine[2][0] === "(") && line.split(")")[1].trim().startsWith("=>") ){
+        methodName = splitedLine[1]
+      } 
+      if(isABuiltInType(splitedLine[0]) && isVariableName(splitedLine[1].split("(")[0]) && line.split(")")[1].trim().startsWith("=>") ){
+        methodName = splitedLine[1].split("(")[0];
+      }
+    }
+    if(methodName !== ""){
+      let methodLines = [];
+      while(index < lines.length){
+        methodLines.push(line);
+        if(containsSemicolon()){
+          break;
+        }
+        index++;
+      }
+      if(methodName.startsWith("_")){
+        privateArrowFunc.push({methodName: methodName, lines: methodLines});
+      }
+      else{
+        publicArrowFunc.push({methodName: methodName, lines: methodLines});
+      }
+    }  
+  } 
+  return {publicArrowFunctions: publicArrowFunc, privateArrowFunctions:privateArrowFunc}
 }
 
 function containsDataType(singleline) {
@@ -79,6 +134,53 @@ function reverse_this(str) {
       temp += str[i];
   }
   return temp;
+}
+
+function isMethodSignature(line, methods){
+  let splitedLine = line.split(" ");
+  if(splitedLine[1]){
+    if(methods.includes(splitedLine[1]) && (splitedLine[2] === "async" || splitedLine[2][0] === "(")) 
+      return {isMethod: true, methodName: splitedLine[1]};
+    if(methods.includes(splitedLine[1].split("(")[0]))
+      return {isMethod: true, methodName: splitedLine[1].split("(")[0]};
+  }
+  return {isMethod: false};
+}
+
+function getMethods(linesInClass, methods){
+  let methodsInFile = [];
+  for (let index = 0; index < linesInClass.length; index++) {
+    let line = linesInClass[index];
+    let checkMethod = isMethodSignature(line, methods); 
+    if(checkMethod.isMethod){
+        let methodInFile;
+        let opening2BrkFound = false, bracket=0, endMethod = false;
+        methodInFile = {name: checkMethod.methodName, lines: []};
+        while (index < linesInClass.length) {
+          for (const character of line) {
+            if(character === '{'){
+              opening2BrkFound = true;
+              bracket++;
+            }
+            else if(character === '}'){
+              bracket--;
+            }
+            if(opening2BrkFound && bracket === 0){
+              endMethod = true;
+              break; 
+            }
+          }
+          methodInFile.lines.push(line);
+          if (endMethod) {
+            methodsInFile.push(methodInFile);
+            break;
+          }
+          index++;
+          line = linesInClass[index].trim();  
+        }
+    }
+  }
+  return methodsInFile;
 }
 
 function getMethodCount(singleline){
@@ -125,7 +227,6 @@ function findMethod(lines){
       if(!found) {
           continue;
       }
-
       let left_bracket_cnt=0, right_bracket_cnt=0;
       for(--i; i>=0; i--) {
           if(singleline[i]==' ') continue;
@@ -138,13 +239,10 @@ function findMethod(lines){
               break;
           }
       }
-
       if(!(left_bracket_cnt>0 && right_bracket_cnt>0 && left_bracket_cnt==right_bracket_cnt)){
           continue;
       }
-      
       let method = getMethodCount(singleline.substring(0, i));
-      
       if(method.length>0){
           if(method[0]=='_'){
               private_methods.push(method);
@@ -251,7 +349,7 @@ function findClasses(lines) {
 const calculateMHF = function (linesWithoutCommentsInFiles, fileNames) {    
   let totalPrivate=0, total=0;  
   for (let index = 0; index < linesWithoutCommentsInFiles.length; index++) {
-    console.log("File name: " + fileNames[index]);
+    //console.log("File name: " + fileNames[index]);
     let methods = findMethod(linesWithoutCommentsInFiles[index]);
     let numPrivateAttribute = methods[0].length, numTotalAttributes = methods[0].length + methods[1].length;
     if (numTotalAttributes === 0) {
@@ -297,8 +395,8 @@ function getClassesFromAllFile(linesInFiles, fileNames){
   let classesInFiles = [];
   for (let index = 0; index < linesInFiles.length; index++) {
     const classes = findClasses(linesInFiles[index]);
-    console.log("File name: " + fileNames[index]);
-    console.log("classes: ");
+    //console.log("File name: " + fileNames[index]);
+    //console.log("classes: ");
     //console.log(classes);
     classesInFiles.push({fileName: fileNames[index], classes: classes});
   }
@@ -359,6 +457,28 @@ const getLinesInFiles= function (dartFiles) {
   return linesInFiles;
 } 
 
+function getMethodsInFiles(classesInFiles,linesWithoutCommentsInFiles){
+  let methodsInFiles = [];
+  for (let index = 0; index < classesInFiles.length; index++) {
+    console.log("Num " + (index+1) + ": ");
+    //console.log(classesInFiles[index]);
+    const classes = classesInFiles[index].classes;
+    const lines = linesWithoutCommentsInFiles[index];
+    const allMethods = findMethod(lines);
+    let methods = [...allMethods[0], ...allMethods[1]];
+    let currentFileName = classesInFiles[index].fileName;
+    //console.log("File name : " + classesInFiles[index].fileName);
+    for (let j = 0; j < classes.length; j++) {
+      const oneClass = classes[j];
+      //console.log("Class name: " + oneClass.name);
+      let methodsInFile = getMethods(oneClass.lines, methods);
+      //console.log(methodsInFile.map(method => method.name));
+      methodsInFiles.push({fileName: currentFileName, className: oneClass.name, methodsInFile: methodsInFile})
+    }
+  }
+  return methodsInFiles;
+}
+
 const calculateTraditionalMetrics = function(dartFiles){
   let cc, sloc, cp;
   let linesInFiles = getLinesInFiles(dartFiles);
@@ -366,15 +486,9 @@ const calculateTraditionalMetrics = function(dartFiles){
   let cpInfos = calculateCP(linesInFiles, sloc);
   let fileNames = dartFiles.map(file => file.name);
   let classesInFiles = getClassesFromAllFile(cpInfos.linesWithoutCommentsInFiles, fileNames);
-  let methodInFiles = [];
-  for (let index = 0; index < classesInFiles.length; index++) {
-    const classes = classesInFiles[index].classes;
-    // for (let j = 0; j < array.length; j++) {
-    //   const element = array[j];
-      
-    // }
-  }
-  
+  let methodsInFiles = getMethodsInFiles(classesInFiles, cpInfos.linesWithoutCommentsInFiles);
+  //console.log("Methods in Files: ");
+  //console.log(classesInFiles);
   //cc = calculateCC()
   cp = cpInfos.cp
   return {
