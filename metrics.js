@@ -168,11 +168,28 @@ function isMethodSignature(line, methods){
   return {isMethod: false};
 }
 
-function getMethods(linesInClass, methods){
+const isArrowMethod = function(line, arrowMethods){
+  let splitedLine = line.split(" ");
+  let arrowMethodNames = arrowMethods.map(method => method.methodName);
+  if(splitedLine[1]){
+    if(arrowMethodNames.includes(splitedLine[1]) && (splitedLine[2] === "async" || splitedLine[2][0] === "(")){
+      let lines = arrowMethods.filter(method => method.methodName === splitedLine[1])[0].lines;
+      return {isMethod: true, methodName: splitedLine[1], lines: lines};
+    }
+    if(arrowMethodNames.includes(splitedLine[1].split("(")[0])){
+      let lines = arrowMethods.filter(method => method.methodName === splitedLine[1].split("(")[0])[0].lines;
+      return {isMethod: true, methodName: splitedLine[1].split("(")[0], lines: lines};
+    }
+  }
+  return {isMethod: false};
+}
+
+function getMethods(linesInClass, methods, arrowMethods){
   let methodsInFile = [];
   for (let index = 0; index < linesInClass.length; index++) {
     let line = linesInClass[index];
-    let checkMethod = isMethodSignature(line, methods); 
+    let checkMethod = isMethodSignature(line, methods);
+    let checkArrowMethod = isArrowMethod(line, arrowMethods); 
     if(checkMethod.isMethod){
         let methodInFile;
         let opening2BrkFound = false, bracket=0, endMethod = false;
@@ -199,6 +216,9 @@ function getMethods(linesInClass, methods){
           index++;
           line = linesInClass[index].trim();  
         }
+    }
+    else if(checkArrowMethod.isMethod){
+      methodsInFile.push({name: checkArrowMethod.methodName, lines: checkArrowMethod.lines});
     }
   }
   return methodsInFile;
@@ -484,14 +504,18 @@ function getMethodsInFiles(classesInFiles,linesWithoutCommentsInFiles){
     //console.log(classesInFiles[index]);
     const classes = classesInFiles[index].classes;
     const lines = linesWithoutCommentsInFiles[index];
-    const allMethods = findMethod(lines);
-    let methods = [...allMethods[0], ...allMethods[1]];
+    
     let currentFileName = classesInFiles[index].fileName;
     //console.log("File name : " + classesInFiles[index].fileName);
     for (let j = 0; j < classes.length; j++) {
       const oneClass = classes[j];
+      const allMethods = findMethod(oneClass.lines);
+    let arrowFunctions = checkArrowFunctions(oneClass.lines);
+    let methods = [...allMethods[0], ...allMethods[1]];
+    let arrowMethods = [...arrowFunctions.publicArrowFunctions, ...arrowFunctions.privateArrowFunctions];
       //console.log("Class name: " + oneClass.name);
-      let methodsInFile = getMethods(oneClass.lines, methods);
+      //console.log(methods);
+      let methodsInFile = getMethods(oneClass.lines, methods, arrowMethods);
       //console.log(methodsInFile.map(method => method.name));
       methodsInFiles.push({fileName: currentFileName, className: oneClass.name, methodsInFile: methodsInFile})
     }
@@ -508,6 +532,15 @@ const calculateTraditionalMetrics = function(dartFiles){
   let classesInFiles = getClassesFromAllFile(cpInfos.linesWithoutCommentsInFiles, fileNames);
   let methodsInFiles = getMethodsInFiles(classesInFiles, cpInfos.linesWithoutCommentsInFiles);
   //console.log("Methods in Files: ");
+  //console.log(methodsInFiles);
+  for (let index = 0; index < methodsInFiles.length; index++) {
+    const methodsInFile = methodsInFiles[index];
+    console.log("FIle name: " + methodsInFile.fileName);
+    for (let j = 0; j < methodsInFile.methodsInFile.length; j++) {
+      const method = methodsInFile.methodsInFile[j];
+      console.log(method.name);
+    }
+  }
   //console.log(classesInFiles);
   //cc = calculateCC()
   cp = cpInfos.cp
@@ -527,17 +560,17 @@ const calculateMOODMetrics =function(dartFiles){
   let linesWithoutCommentsInFiles = cpInfos.linesWithoutCommentsInFiles;
   let classesInFiles = getClassesFromAllFile(linesWithoutCommentsInFiles, fileNames);
 
-  for (let index = 0; index < classesInFiles.length; index++) {
-    const classes = classesInFiles[index].classes;
-    console.log("File Name: " + fileNames[index]);    
-    for (let j = 0; j < classes.length; j++) {
-      const oneClass = classes[j];
-      console.log("Class name: " + oneClass.name);
-      let linesInClass = oneClass.lines;
-      let arrowFunctions = checkArrowFunctions(linesInClass);
-      console.log(arrowFunctions);
-    }
-  }
+  // for (let index = 0; index < classesInFiles.length; index++) {
+  //   const classes = classesInFiles[index].classes;
+  //   console.log("File Name: " + fileNames[index]);    
+  //   for (let j = 0; j < classes.length; j++) {
+  //     const oneClass = classes[j];
+  //     console.log("Class name: " + oneClass.name);
+  //     let linesInClass = oneClass.lines;
+  //     let arrowFunctions = checkArrowFunctions(linesInClass);
+  //     console.log(arrowFunctions);
+  //   }
+  // }
   ahf = calculateAHF(linesWithoutCommentsInFiles);
   mhf = calculateMHF(linesWithoutCommentsInFiles, fileNames); 
   return {ahf: ahf, mhf: mhf}
