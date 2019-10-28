@@ -441,6 +441,118 @@ const calculateWMC = function (linesWithoutCommentsInFiles, fileNames) {
   return wmc
 }
 
+const getClassToMethodAttrMap = function (classesInFiles) {
+  let classToMethodAttrMap = {};
+  for (let index = 0; index < classesInFiles.length; index++) {
+    //console.log(classesInFiles[index]);
+    const classes = classesInFiles[index].classes;
+    //console.log("File name : " + classesInFiles[index].fileName);
+    for (let j = 0; j < classes.length; j++) {
+      const oneClass = classes[j];
+      const allMethods = findMethod(oneClass.lines);
+      let arrowFunctions = checkArrowFunctions(oneClass.lines);
+      let methods = [...allMethods[0], ...allMethods[1]];
+      let arrowMethods = [...arrowFunctions.publicArrowFunctions, ...arrowFunctions.privateArrowFunctions];
+      let methodsInFile = getMethods(oneClass.lines, methods, arrowMethods);
+      let attributeInFile = findAttribute(oneClass.lines);
+      //console.log(methodsInFile.map(method => method.name));
+      const className = oneClass.name;
+      classToMethodAttrMap[className] = {methods: methodsInFile.map(method => method.name), attributes: attributeInFile[0], lines: oneClass.lines}  
+    }
+  }
+  return classToMethodAttrMap;
+}
+
+const isAForeignClass = function (testStr, foreignClasses) {
+  for(const foreignClass of foreignClasses) {
+    if(testStr.startsWith(foreignClass) && (testStr[foreignClass.length] === ' ' || testStr[foreignClass.length] === ')' || testStr[foreignClass.length] === ';' || testStr[foreignClass.length] === '>')){
+      return true;
+    }
+  }
+  return false;
+}
+
+const hasForeignMethod = function(testStr, foreignClasses, classToMethodAttrMap){
+  for(const foreignClass of foreignClasses) {
+    let methods = classToMethodAttrMap[foreignClass].methods;
+    for (let index = 0; index < methods.length; index++) {
+      const method = methods[index];
+      if(testStr.startsWith(method) && (testStr[foreignClass.length] === ' ' || testStr[foreignClass.length] === ')' || testStr[foreignClass.length] === '(')){
+        return true;
+      }  
+    }
+  }
+  return false;
+}
+
+const hasForeignAttribute = function(testStr, foreignClasses, classToMethodAttrMap){
+  for(const foreignClass of foreignClasses) {
+    let attributes = classToMethodAttrMap[foreignClass].attributes;
+    for (let index = 0; index < attributes.length; index++) {
+      const attribute = attributes[index];
+      if(testStr.startsWith(attribute)){
+        return true;
+      }  
+    }
+  }
+  return false;
+}
+
+const calculateATFD = function (classesInFiles) {
+  let classToATFDMap = {};
+  const classToMethodAttrMap = getClassToMethodAttrMap(classesInFiles);
+  const classNames = Object.keys(classToMethodAttrMap);
+  for (let index = 0; index < classNames.length; index++) {
+    const className = classNames[index];
+    let ATFD = 0;
+    let foreignClasses = classNames.filter(cn => cn !== className);
+    let hasFirstQuote = false, hasSecondQuote = false;
+    let lines = classToMethodAttrMap[className].lines;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      for (let j = 0; j < line.length-2; j++) {
+        if(line[j] === "\'"){
+          hasFirstQuote = !hasFirstQuote;
+        }
+        else if(line[j] === "\""){
+          hasSecondQuote = !hasSecondQuote;
+        }
+        else if(line[j] === "n" && !hasFirstQuote && !hasSecondQuote){
+          let temp = (j+1);
+          if (temp < line.length) {
+          if(line[temp] === 'e'){
+              temp++;
+              if (temp < line.length) {
+                if(line[temp] === 'w' && temp+1 < line.length){
+                  let rest = line.substring(temp+1).trim();
+                  if(isAForeignClass(rest, foreignClasses)){
+                    ATFD++;
+                  }
+                } 
+              }
+          } 
+        }
+        }
+        else if(line[j] === "<" && !hasFirstQuote && !hasSecondQuote){
+          let rest = line.substring(j+1).trim();
+          if(isAForeignClass(rest, foreignClasses)){
+            ATFD++;
+          }
+        }
+        else if(line[j] === "." && !hasFirstQuote && !hasSecondQuote){
+          let rest = line.substring(j+1);
+          if(hasForeignMethod(rest, foreignClasses, classToMethodAttrMap) || hasForeignAttribute(rest, foreignClasses, classToMethodAttrMap)){
+            ATFD++;
+          }
+        }
+      }  
+    }
+    classToATFDMap[className] = ATFD;
+  }
+  console.log(classToATFDMap);
+  return classToATFDMap;
+}
+
 const calculateDIT = function (childParentMap) {
   let classToDITMap = {}; 
   console.log(childParentMap);
@@ -701,7 +813,7 @@ function getMethodsInFiles(classesInFiles,linesWithoutCommentsInFiles){
 }
 
 const calculateTraditionalMetrics = function(dartFiles){
-  let cc, sloc, cp;
+  let cc, sloc, cp, atfd;
   let linesInFiles = getLinesInFiles(dartFiles);
   sloc = calculateSLOC(linesInFiles);
   let cpInfos = calculateCP(linesInFiles, sloc);
@@ -714,10 +826,16 @@ const calculateTraditionalMetrics = function(dartFiles){
     return total + current
   }, 0)/ccs.length;
   cp = cpInfos.cp
+  let classesInFiles = getClassesFromAllFile(linesWithoutCommentsInFiles, fileNames);
+  let classToATFDMap = calculateATFD(classesInFiles);
+  atfd = Object.values(classToATFDMap).reduce((total, current) => {
+    return total + current;
+  }, 0);
   return {
     cc: cc.toFixed(2),
     sloc: sloc,
     cp: cp,
+    atfd: atfd
   }  
 }
 

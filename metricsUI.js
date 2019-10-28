@@ -1,9 +1,9 @@
 function displayMetrics(tabledata, customFormatter){
   var table = new Tabulator("#res-table", {
     //height:"311px",
-    layout:"fitData",
+    layout:"fitDataFill",
     data:tabledata, //load data into table
-    responsiveLayout:true,
+    //responsiveLayout:true,
     columns:[
         {title:"Project Name", field:"projectName", sorter:"string", titleFormatter:"textarea", variableHeight:true},
         {title:"Avg. McCabe\nCyclomatic Complexity(CC)", field:"cc", sorter:"string", titleFormatter:"textarea", variableHeight:true},
@@ -15,6 +15,7 @@ function displayMetrics(tabledata, customFormatter){
         {title:"Avg. Weighted Method\nper Class(WMC)", field:"wmc", sorter:"string", titleFormatter:"textarea"},
         {title:"Avg. Depth of\nInheritance Tree(DIT)", field:"dit", sorter:"string", titleFormatter:"textarea"},
         {title:"Avg. Number of\nchildren (NOC)", field:"noc", sorter:"string", titleFormatter:"textarea"},
+        {title:"Total Access To\nForeign Data(ATFD)", field:"atfd", sorter:"string", titleFormatter:"textarea"},
 
         // {title:"Success", field:"hasPredicted", formatter:"tickCross", align:"center", width:100}
     ]
