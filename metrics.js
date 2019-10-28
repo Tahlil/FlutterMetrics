@@ -348,7 +348,8 @@ function findAttribute(lines) {
 
 
 function classIdentify(line) {
-  return line.startsWith("class");
+  let splitted = line.split(" ");
+  return line.startsWith("class") || (splitted[0] === "abstract" && splitted[0] === "class");
 }
 
 function getClassName(line) {
@@ -388,7 +389,7 @@ function findClasses(lines) {
   } 
   return classes;
 }
-// //mood
+// mood
 const calculateMHF = function (linesWithoutCommentsInFiles, fileNames) {    
   let totalPrivate=0, total=0;  
   for (let index = 0; index < linesWithoutCommentsInFiles.length; index++) {
@@ -427,9 +428,54 @@ const calculatePOF = function () {  }
 const calculateCOF = function () {  }
 
 // // //ck
-// // const calculateWMC = function () {  }
-// // const calculateDIT = function () {  }
-// // const calculateNOC = function () {  }
+const calculateWMC = function (linesWithoutCommentsInFiles, fileNames) { 
+  let wmc = 0;
+  let classesInFiles = getClassesFromAllFile(linesWithoutCommentsInFiles, fileNames);
+  let numberOfClasses = getNumberOfClasses(classesInFiles);
+  let ccInfos = calculateCC(linesWithoutCommentsInFiles, fileNames)
+  let ccs = ccInfos.map(ccInfo => ccInfo.cc);
+  let cc = ccs.reduce((total, current) => {
+    return total + current
+  });
+  wmc = (cc/numberOfClasses).toFixed(2);
+  return wmc
+}
+
+const calculateDIT = function (childParentMap) {
+  let classToDITMap = {}; 
+  console.log(childParentMap);
+  let children = Object.keys(childParentMap);
+  for (const child of children) {
+    let currentChildDIT = 1;
+    let currentParent = childParentMap[child];
+    let tempChildren = [...children];
+    while(currentParent.length !== 0){
+      currentChildDIT++;
+      let currentChild = currentParent[0];
+      currentParent = [];
+      console.log("Child: "+child);
+      //console.log("currentChild: " + currentChild);
+      //console.log("Child: "+children);      
+      if(tempChildren.includes(currentChild)){
+        //console.log("h;saf;sfj;slfjsl;fjs;lfjfjlfj;");
+        currentParent = childParentMap[currentChild];
+        console.log(currentParent);        
+      }
+    }
+    classToDITMap[child] = currentChildDIT;
+  }
+  console.log(classToDITMap);
+  let totalDIT = Object.values(classToDITMap).reduce((total, current) => {
+    return total + current;
+  }, 0);
+  const averageDIT = totalDIT / Object.values(classToDITMap).length;
+  return averageDIT.toFixed(2);
+}
+
+const calculateNOC = function (childParentMap) { 
+
+}
+
 // // const calculateCBO = function () {  }
 // // const calculateRFC = function () {  }
 // // const calculateLCOM = function () {  }
@@ -541,10 +587,10 @@ const calculateCC = function (linesWithoutCommentsInFiles, fileNames) {
   let allCCs = [];
   for (let index = 0; index < methodsInFiles.length; index++) {
     const methodsInFile = methodsInFiles[index];
-    console.log("FIle name: " + methodsInFile.fileName);
+    //console.log("FIle name: " + methodsInFile.fileName);
     for (let j = 0; j < methodsInFile.methodsInFile.length; j++) {
       const method = methodsInFile.methodsInFile[j];
-      console.log("Cyclometic complexity of " + method.name + " is:");
+      //console.log("Cyclometic complexity of " + method.name + " is:");
       //console.log(allMethods);
       let ccOfAMethod = getCCOfAMethod(method.lines, allMethods);
       allCCs.push({cc: ccOfAMethod, methodName: method.name});
@@ -646,6 +692,44 @@ const calculateTraditionalMetrics = function(dartFiles){
   }  
 }
 
+const getParents = function (firstLine, className) {
+  let parents = [];
+  if(firstLine.split(className)[1].trim().startsWith("extends")){
+    let splitByComma = firstLine
+              .split('extends')[1]
+              .replace(/\s/g,'')
+              .replace('{','')
+              .split(',');
+    for (let index = 0; index < splitByComma.length; index++) {
+      const parent = splitByComma[index];
+      if(parent.endsWith('>')){
+        let splited = parent.split('<');
+        //parents.push(splited[0]);
+        parents.push(splited[1].replace('>', ''));
+        continue;
+      }
+      parents.push(parent);
+    }
+    return parents;
+  }
+  else{
+    return [];
+  }
+}
+
+const getChildParentMap = function (classesInFiles) {
+  let childParentMap = {};
+  for (let index = 0; index < classesInFiles.length; index++) {
+    const classes = classesInFiles[index].classes;
+    for (let j = 0; j < classes.length; j++) {
+      const oneClass = classes[j];
+      let parents = getParents(oneClass.lines[0], oneClass.name);
+      childParentMap[oneClass.name] = parents;
+    }
+  }
+  return childParentMap;
+}
+
 const getNumberOfClasses = function(classesInFiles){
   let totalNumberOfClass = 0;
   for (let index = 0; index < classesInFiles.length; index++) {
@@ -690,14 +774,13 @@ const calculateCKMetrics = function(dartFiles){
   let linesWithoutCommentsInFiles = cpInfos.linesWithoutCommentsInFiles;
   //console.log(classesInFiles);
   let classesInFiles = getClassesFromAllFile(linesWithoutCommentsInFiles, fileNames);
-  let numberOfClasses = getNumberOfClasses(classesInFiles);
-  let ccInfos = calculateCC(linesWithoutCommentsInFiles, fileNames)
-  let ccs = ccInfos.map(ccInfo => ccInfo.cc);
-  let cc = ccs.reduce((total, current) => {
-    return total + current
-  });
-  wmc = (cc/numberOfClasses).toFixed(2);
-  return {wmc: wmc};
+  wmc = calculateWMC(linesWithoutCommentsInFiles, fileNames);
+  let childParentMap = getChildParentMap(classesInFiles);
+  console.log("Child Parent Map: ");
+  console.log(childParentMap);
+  dit = calculateDIT(childParentMap);
+  noc = calculateNOC(childParentMap);
+  return {wmc: wmc, dit: dit};
 }
 
 module.exports = {

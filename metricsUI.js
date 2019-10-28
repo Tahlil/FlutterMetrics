@@ -1,16 +1,19 @@
 function displayMetrics(tabledata, customFormatter){
   var table = new Tabulator("#res-table", {
     //height:"311px",
-    layout:"fitColumns",
+    layout:"fitData",
     data:tabledata, //load data into table
+    responsiveLayout:true,
     columns:[
-        {title:"Avg. McCabe Cyclomatic Complexity(CC)", field:"cc", sorter:"string", titleFormatter:"textarea"},
-        {title:"Project Name", field:"projectName", sorter:"string", width:200, titleFormatter:"textarea"},
-        {title:"Source Lines of Code (SLOC)", field:"sloc", sorter:"string", titleFormatter:"textarea"},
-        {title:"Comment Percentage (CP)", field:"cp", sorter:"string", titleFormatter:"textarea"},
-        {title:"Attribute Hiding Factor (AHF)", field:"ahf", sorter:"string", titleFormatter:"textarea"},
-        {title:"Method Hiding Factor (MHF)", field:"mhf", sorter:"string", titleFormatter:"textarea"},
-        {title:"Weighted Method per Class (WMC)", field:"wmc", sorter:"string", titleFormatter:"textarea"},
+        {title:"Project Name", field:"projectName", sorter:"string", titleFormatter:"textarea", variableHeight:true},
+        {title:"Avg. McCabe\nCyclomatic Complexity(CC)", field:"cc", sorter:"string", titleFormatter:"textarea", variableHeight:true},
+        
+        {title:"Source Lines\nof Code(SLOC)", field:"sloc", sorter:"string", titleFormatter:"textarea"},
+        {title:"Comment\nPercentage(CP)", field:"cp", sorter:"string", titleFormatter:"textarea"},
+        {title:"Attribute\nHiding Factor(AHF)", field:"ahf", sorter:"string", titleFormatter:"textarea"},
+        {title:"Method\nHiding Factor(MHF)", field:"mhf", sorter:"string", titleFormatter:"textarea"},
+        {title:"Avg Weighted Method\nper Class(WMC)", field:"wmc", sorter:"string", titleFormatter:"textarea"},
+        {title:"Avg Depth of\nInheritance Tree(DIT)", field:"dit", sorter:"string", titleFormatter:"textarea"},
 
         // {title:"Success", field:"hasPredicted", formatter:"tickCross", align:"center", width:100}
     ]
