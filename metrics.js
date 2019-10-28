@@ -473,7 +473,36 @@ const calculateDIT = function (childParentMap) {
 }
 
 const calculateNOC = function (childParentMap) { 
-
+  let classToNOPMap = {}; 
+  console.log(childParentMap);
+  
+  let children = Object.keys(childParentMap);
+  let parents = Object.values(childParentMap).map(value => value[0]);
+  //console.log(children);
+  //console.log(parents);
+  let allClasses = [...children, ...parents];
+  console.log(allClasses);
+  function onlyUnique(value, index, self) { 
+    return self.indexOf(value) === index;
+}
+  let allUniqueClasses = allClasses.filter(onlyUnique);
+  console.log("Number of classes: " + allClasses.length);
+  console.log("Number of classes set: " + allUniqueClasses.length);
+  //console.log(allClasses);
+  //console.log(allUniqueClasses);
+  for (const parent of parents) {
+    if(classToNOPMap.hasOwnProperty(parent)){
+      classToNOPMap[parent]++;
+    }
+    else{
+      classToNOPMap[parent] = 1;
+    }
+  }
+  console.log(classToNOPMap);
+  let totalNOP = Object.values(classToNOPMap).reduce((total, current) => {
+    return total + current;
+  }, 0); 
+  return (totalNOP/allUniqueClasses.length).toFixed(2);
 }
 
 // // const calculateCBO = function () {  }
@@ -780,7 +809,7 @@ const calculateCKMetrics = function(dartFiles){
   console.log(childParentMap);
   dit = calculateDIT(childParentMap);
   noc = calculateNOC(childParentMap);
-  return {wmc: wmc, dit: dit};
+  return {wmc: wmc, dit: dit, noc: noc};
 }
 
 module.exports = {

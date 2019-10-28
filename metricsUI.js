@@ -12,8 +12,9 @@ function displayMetrics(tabledata, customFormatter){
         {title:"Comment\nPercentage(CP)", field:"cp", sorter:"string", titleFormatter:"textarea"},
         {title:"Attribute\nHiding Factor(AHF)", field:"ahf", sorter:"string", titleFormatter:"textarea"},
         {title:"Method\nHiding Factor(MHF)", field:"mhf", sorter:"string", titleFormatter:"textarea"},
-        {title:"Avg Weighted Method\nper Class(WMC)", field:"wmc", sorter:"string", titleFormatter:"textarea"},
-        {title:"Avg Depth of\nInheritance Tree(DIT)", field:"dit", sorter:"string", titleFormatter:"textarea"},
+        {title:"Avg. Weighted Method\nper Class(WMC)", field:"wmc", sorter:"string", titleFormatter:"textarea"},
+        {title:"Avg. Depth of\nInheritance Tree(DIT)", field:"dit", sorter:"string", titleFormatter:"textarea"},
+        {title:"Avg. Number of\nchildren (NOC)", field:"noc", sorter:"string", titleFormatter:"textarea"},
 
         // {title:"Success", field:"hasPredicted", formatter:"tickCross", align:"center", width:100}
     ]
