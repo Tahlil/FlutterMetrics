@@ -472,12 +472,16 @@ const isAForeignClass = function (testStr, foreignClasses) {
   return false;
 }
 
+const hasMethod = function(testStr, method){
+  return testStr.startsWith(method) && (testStr[method.length] === ' ' || testStr[method.length] === ')' || testStr[method.length] === '(');
+}
+
 const hasForeignMethod = function(testStr, foreignClasses, classToMethodAttrMap){
   for(const foreignClass of foreignClasses) {
     let methods = classToMethodAttrMap[foreignClass].methods;
     for (let index = 0; index < methods.length; index++) {
       const method = methods[index];
-      if(testStr.startsWith(method) && (testStr[foreignClass.length] === ' ' || testStr[foreignClass.length] === ')' || testStr[foreignClass.length] === '(')){
+      if(hasMethod(testStr, method)){
         return true;
       }  
     }
@@ -549,7 +553,7 @@ const calculateATFD = function (classesInFiles) {
     }
     classToATFDMap[className] = ATFD;
   }
-  console.log(classToATFDMap);
+  //console.log(classToATFDMap);
   return classToATFDMap;
 }
 
@@ -788,6 +792,40 @@ const getLinesInFiles= function (dartFiles) {
   return linesInFiles;
 } 
 
+const combinationOfTwo = function(a) {
+  let min = 2;
+  let fn = function(n, src, got, all) {
+      if (n == 0) {
+          if (got.length > 0) {
+              all[all.length] = got;
+          }
+          return;
+      }
+      for (let j = 0; j < src.length; j++) {
+          fn(n - 1, src.slice(j + 1), got.concat([src[j]]), all);
+      }
+      return;
+  }
+  let all = [];
+  for (let i = min; i < a.length; i++) {
+      fn(i, a, [], all);
+  }
+  all.push(a);
+  return all.filter(el => el.length === 2);
+}
+
+const getIndexFromZeroToN = function(n){
+  if(n === 0){
+    console.error("Array size can't be zero");
+  }
+  let arr = [];
+  do {
+    n--;
+    arr.push(n);
+  } while (n > 0);
+  return arr;
+}
+
 function getMethodsInFiles(classesInFiles,linesWithoutCommentsInFiles){
   let methodsInFiles = [];
   for (let index = 0; index < classesInFiles.length; index++) {
@@ -799,21 +837,162 @@ function getMethodsInFiles(classesInFiles,linesWithoutCommentsInFiles){
     for (let j = 0; j < classes.length; j++) {
       const oneClass = classes[j];
       const allMethods = findMethod(oneClass.lines);
-    let arrowFunctions = checkArrowFunctions(oneClass.lines);
-    let methods = [...allMethods[0], ...allMethods[1]];
-    let arrowMethods = [...arrowFunctions.publicArrowFunctions, ...arrowFunctions.privateArrowFunctions];
+      let arrowFunctions = checkArrowFunctions(oneClass.lines);
+      let methods = [...allMethods[0], ...allMethods[1]];
+      let arrowMethods = [...arrowFunctions.publicArrowFunctions, ...arrowFunctions.privateArrowFunctions];
       //console.log("Class name: " + oneClass.name);
       //console.log(methods);
       let methodsInFile = getMethods(oneClass.lines, methods, arrowMethods);
       //console.log(methodsInFile.map(method => method.name));
-      methodsInFiles.push({fileName: currentFileName, className: oneClass.name, methodsInFile: methodsInFile})
+      methodsInFiles.push({fileName: currentFileName, className: oneClass.name, methodsInFile: methodsInFile, lines: oneClass.lines})
     }
   }
   return methodsInFiles;
 }
 
+const cohesionExistBetweenMethodPairs = function(method1, method2, localAttributes){
+  let method1Name = method1.name, method2Name = method2.name;
+  console.log(method1Name + " " + method2Name);
+  
+  let method1Lines = method1.lines, method2Lines = method2.lines, attributesInMethod1 = [];
+  let copyLocalAttr = [...localAttributes];
+  for (let index = 0; index < method1Lines.length; index++) {
+    let line = method1Lines[index];
+    line = line.replace('\\\'', '');
+    line = line.replace('\\\"', '');
+    line = line.replace(/  +/g, ' ');
+    if (!line.includes('\'') && !line.includes('\"')) {
+      let splitedLine = line.split(' ');
+      for (let j = 0; j < splitedLine.length; j++) {
+        const splited = splitedLine[j];
+        if(hasMethod(splited, method2Name)){
+          console.log("True because: " + method2Name);
+          return true;
+        }
+        for (let k = 0; k < copyLocalAttr.length; k++) {
+          const localAttribute = copyLocalAttr[k];
+          if(splited.startsWith(localAttribute)){
+            attributesInMethod1.push(localAttribute);
+          }
+        }
+        copyLocalAttr = copyLocalAttr.filter(attr => !attributesInMethod1.includes(attr))
+      }      
+    }
+    else{
+      let splitedLineByQuote = line.includes('\"') ? line.split('\"') : line.split('\'');
+      for (let i = 0; i < splitedLineByQuote.length; i+=2) {
+          let splitedLine = splitedLineByQuote[i].split(' ');
+          for (let j = 0; j < splitedLine.length; j++) {
+            const splited = splitedLine[j];
+            if(hasMethod(splited, method2Name)){
+              console.log("True because: " + method2Name);
+              return true;
+            }
+            for (let k = 0; k < copyLocalAttr.length; k++) {
+              const localAttribute = copyLocalAttr[k];
+              if(splited.startsWith(localAttribute)){
+                attributesInMethod1.push(localAttribute);
+              }
+            }
+            copyLocalAttr = copyLocalAttr.filter(attr => !attributesInMethod1.includes(attr))
+          }  
+      }
+    }
+  }
+  
+  for (let index = 0; index < method2Lines.length; index++) {
+    let line = method2Lines[index];
+    line = line.replace('\\\'', '');
+    line = line.replace('\\\"', '');
+    line = line.replace(/  +/g, ' ');
+    if (!line.includes('\'') && !line.includes('\"')) {
+      let splitedLine = line.split(' ');
+      for (let j = 0; j < splitedLine.length; j++) {
+        const splited = splitedLine[j];
+        if(hasMethod(splited, method1Name)){
+          console.log(method1Name);
+          return true;
+        }
+        if(attributesInMethod1.length > 0){
+          for (let k = 0; k < attributesInMethod1.length; k++) {
+            const attributeInMth1 = attributesInMethod1[k];
+            if(splited.startsWith(attributeInMth1)){
+              console.log("true because Attr: " + attributeInMth1);
+              return true;
+            }
+          }
+        }         
+      }      
+    }
+    else{
+      let splitedLineByQuote = line.includes('\"') ? line.split('\"') : line.split('\'');
+      for (let i = 0; i < splitedLineByQuote.length; i+=2) {
+          let splitedLine = splitedLineByQuote[i].split(' ');
+          for (let j = 0; j < splitedLine.length; j++) {
+            const splited = splitedLine[j];
+            if(hasMethod(splited, method1Name)){
+              console.log(method1Name);
+              return true;
+            }
+            if(attributesInMethod1.length > 0){
+              for (let k = 0; k < attributesInMethod1.length; k++) {
+                const attributeInMth1 = attributesInMethod1[k];
+                if(splited.startsWith(attributeInMth1)){
+                  console.log("true because Attr: " + attributeInMth1);
+                  return true;
+                }
+              }
+            }         
+          }    
+      }
+    }
+  }
+  return false;
+}
+
+const calculateTCC = function(classesInFiles, linesWithoutCommentsInFiles){
+  let classToTCCMap = {};
+  console.log("calculating TCC...");
+  let methodsInFiles = getMethodsInFiles(classesInFiles, linesWithoutCommentsInFiles);
+  for (let index = 0; index < methodsInFiles.length; index++) {
+    let methodsInFile = methodsInFiles[index];
+    //console.log(methodsInFile);
+    const className = methodsInFile.className;
+    //console.log("Class name: " + className);
+    
+    let linesInClass = methodsInFile.lines;
+    let attributesInClass = findAttribute(linesInClass);
+    let allLocalAttributes = [...attributesInClass[0], ...attributesInClass[1]]; 
+    let methodsInClass = methodsInFile.methodsInFile;
+    if(methodsInClass.length === 1){
+      //console.log("Class " + className + " has one method."); 
+      classToTCCMap[className] = 0;   
+      continue;
+    }
+    console.log("Methods in class: "  + methodsInClass.length);
+
+    let possibleIndexes = getIndexFromZeroToN(methodsInClass.length);
+    let combinationsOfMethods = combinationOfTwo(possibleIndexes);
+    let numberOfCombination = combinationsOfMethods.length;
+    console.log(combinationsOfMethods);
+    
+    console.log("numberOfCombination: " + numberOfCombination);
+    let currentTCC = 0;
+    for (let j = 0; j < numberOfCombination; j++) {
+      const combination = combinationsOfMethods[j];
+      const method1 = methodsInClass[combination[0]];
+      const method2 = methodsInClass[combination[1]];
+      if (cohesionExistBetweenMethodPairs(method1, method2, allLocalAttributes)) {
+        currentTCC++;
+      }
+    }
+    classToTCCMap[className] = currentTCC;
+  }
+  return classToTCCMap;
+}
+
 const calculateTraditionalMetrics = function(dartFiles){
-  let cc, sloc, cp, atfd;
+  let cc, sloc, cp, atfd, tcc;
   let linesInFiles = getLinesInFiles(dartFiles);
   sloc = calculateSLOC(linesInFiles);
   let cpInfos = calculateCP(linesInFiles, sloc);
@@ -828,14 +1007,21 @@ const calculateTraditionalMetrics = function(dartFiles){
   cp = cpInfos.cp
   let classesInFiles = getClassesFromAllFile(linesWithoutCommentsInFiles, fileNames);
   let classToATFDMap = calculateATFD(classesInFiles);
+  let classToTCCMap = calculateTCC(classesInFiles, linesWithoutCommentsInFiles);
+  console.log("Class to TCC map: ");
+  console.log(classToTCCMap);
   atfd = Object.values(classToATFDMap).reduce((total, current) => {
+    return total + current;
+  }, 0);
+  tcc = Object.values(classToTCCMap).reduce((total, current) => {
     return total + current;
   }, 0);
   return {
     cc: cc.toFixed(2),
     sloc: sloc,
     cp: cp,
-    atfd: atfd
+    atfd: atfd,
+    tcc: tcc
   }  
 }
 
@@ -927,7 +1113,10 @@ const calculateCKMetrics = function(dartFiles){
   console.log(childParentMap);
   dit = calculateDIT(childParentMap);
   noc = calculateNOC(childParentMap);
-  return {wmc: wmc, dit: dit, noc: noc};
+  return {
+    wmc: wmc,
+    dit: dit,
+    noc: noc};
 }
 
 module.exports = {

@@ -35,6 +35,8 @@ const getMetricButtons = function (hasOneProject) {
       <p class="badge badge-secondary">McCabe Cyclomatic Complexity (CC)</p>
       <p class="badge badge-secondary">Source Lines of Code (SLOC)</p>
       <p class="badge badge-secondary">Comment Percentage (CP)</p>
+      <p class="badge badge-secondary">Total Access To Foreign Data(ATFD)</p>
+      <p class="badge badge-secondary">Tight Class Cohesion (TCC)</p>
     </div>
   </div>
   <div class="row">

@@ -16,7 +16,7 @@ function displayMetrics(tabledata, customFormatter){
         {title:"Avg. Depth of\nInheritance Tree(DIT)", field:"dit", sorter:"string", titleFormatter:"textarea"},
         {title:"Avg. Number of\nchildren (NOC)", field:"noc", sorter:"string", titleFormatter:"textarea"},
         {title:"Total Access To\nForeign Data(ATFD)", field:"atfd", sorter:"string", titleFormatter:"textarea"},
-
+        {title:"Total Tight Class\nCohesion(TCC)", field:"tcc", sorter:"string", titleFormatter:"textarea"},
         // {title:"Success", field:"hasPredicted", formatter:"tickCross", align:"center", width:100}
     ]
 });
