@@ -97,8 +97,24 @@ class DesktopApp {
     }
 
     setUpSmellListener(){
-      this.ipcMain.on('smell', (event, _) => {
-        event.sender.send('asynchronous-reply', {});
+      this.ipcMain.on('smell', (event, data) => {
+        let res;
+        if(data.hasOneProject){
+          //console.log("\n\n\n\n\n\nSingle\n\n\n");
+          res = metricHelper.identifyGodClass(data.dartFiles);
+          event.sender.send('smell-detected', [{finalResult: res, projectName:data.projectName}]);
+        }
+        else{
+          res = [];
+          for (let index = 0; index < data.projects.length; index++) {
+            console.log("Project " + index + ":");
+            console.log(data.projects[index]);
+            const resOneProject = metricHelper.identifyGodClass(data.projects[index].dartFiles);
+            res.push({finalResult: resOneProject, projectName:data.projects[index].projectName})
+          }
+          //res = metricsMap[data.metricType](data.dartFilePaths);
+          event.sender.send('smell-detected', res);
+        }
       })
     }
 
@@ -106,14 +122,12 @@ class DesktopApp {
       ipcMain.on('metric', (event, data) => {
         let res;
         if(data.hasOneProject){
-          console.log("\n\n\n\n\n\nSingle\n\n\n");
+          //console.log("\n\n\n\n\n\nSingle\n\n\n");
           res = metricsMap[data.metricType](data.dartFiles);
           event.sender.send('project-metrics', [{...res, projectName:data.projectName}]);
         }
         else{
-          console.log("\n\n\n\n\n\njfsl;fjf\n\n\n");
-          //console.log(data.projects);
-          
+          //console.log(data.projects);        
           res = [];
           for (let index = 0; index < data.projects.length; index++) {
             console.log("Project " + index + ":");

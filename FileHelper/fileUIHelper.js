@@ -8,6 +8,7 @@ function getFiles(elm) {
 
 const getMetricButtons = function (hasOneProject) {
   let usedMethod = hasOneProject ? "getMetricsForProject" : "getMetricsForProjects";
+  let smellMethod = hasOneProject ? "detectGodClassForProject" : "detectGodClassForProjects";
   //"+usedMethod+"(" + "" + "+")"+"
   return `<div class="row">
     <div class="col-3 offset-1" ><button class="btn btn-info" onclick="${usedMethod}('mood')">Get MOOD metrics</button></div>
@@ -40,7 +41,8 @@ const getMetricButtons = function (hasOneProject) {
     </div>
   </div>
   <div class="row">
-    <div class="col-6 offset-5"><button class="btn btn-success" onclick="${usedMethod}('all')">Get ALL Metrics</button></div>
+    <div class="col-3 offset-3"><button class="btn btn-success" onclick="${usedMethod}('all')">Get ALL Metrics</button></div>
+    <div class="col-3 offset-3"><button class="btn btn-success" onclick="${smellMethod}()">Detect God Classes</button></div>
   </div>`
 }
 
@@ -56,6 +58,14 @@ function getMetricsForProjects(metricType) {
   ipcRenderer.send('metric', {hasOneProject: false, metricType: metricType, projects:projects.flutterProjects});
   
 }
+
+function detectGodClassForProject () {
+  ipcRenderer.send('smell', {hasOneProject: true, dartFiles:currentProject.dartFiles, projectName:currentProject.projectName});
+} 
+
+function detectGodClassForProjects (arguments) {
+  ipcRenderer.send('smell', {hasOneProject: false, projects:projects.flutterProjects});
+} 
 
 function getDartFileName(dartFiles) {
   let allDartFileNames = "", index = 0;
@@ -95,7 +105,9 @@ ipcRenderer.on("checked-folders", (event, res) => {
   }
   else{
     projects = {flutterProjects: [...res.flutterProjects]};
-    //console.log(projects);
+    console.log("Projects: ");
+    
+    console.log(projects);
     for (let index = 0; index < res.flutterProjects.length; index++) {
       const flutterProject = res.flutterProjects[index];
       content += "<span style='font-size: 2rem; font-weight: bolder;'>"+(index+1)+". </span>" + getHTMLforOnePrj(true, flutterProject.dartFiles, flutterProject.projectName);
