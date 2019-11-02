@@ -7,7 +7,6 @@ function displayMetrics(tabledata, customFormatter){
     columns:[
         {title:"Project Name", field:"projectName", sorter:"number", titleFormatter:"textarea", variableHeight:true},
         {title:"Avg. McCabe\nCyclomatic\nComplexity(CC)", field:"cc", sorter:"number", titleFormatter:"textarea", variableHeight:true},
-        
         {title:"Source Lines\nof Code\n(SLOC)", field:"sloc", sorter:"number", titleFormatter:"textarea"},
         {title:"Comment\nPercentage\n(CP)", field:"cp", sorter:"number", titleFormatter:"textarea"},
         {title:"Attribute\nHiding Factor\n(AHF)", field:"ahf", sorter:"number", titleFormatter:"textarea"},
