@@ -6,17 +6,17 @@ function displayMetrics(tabledata, customFormatter){
     //responsiveLayout:true,
     columns:[
         {title:"Project Name", field:"projectName", sorter:"number", titleFormatter:"textarea", variableHeight:true},
-        {title:"Avg. McCabe\nCyclomatic Complexity(CC)", field:"cc", sorter:"number", titleFormatter:"textarea", variableHeight:true},
+        {title:"Avg. McCabe\nCyclomatic\nComplexity(CC)", field:"cc", sorter:"number", titleFormatter:"textarea", variableHeight:true},
         
-        {title:"Source Lines\nof Code(SLOC)", field:"sloc", sorter:"number", titleFormatter:"textarea"},
-        {title:"Comment\nPercentage(CP)", field:"cp", sorter:"number", titleFormatter:"textarea"},
-        {title:"Attribute\nHiding Factor(AHF)", field:"ahf", sorter:"number", titleFormatter:"textarea"},
-        {title:"Method\nHiding Factor(MHF)", field:"mhf", sorter:"number", titleFormatter:"textarea"},
-        {title:"Avg. Weighted Method\nper Class(WMC)", field:"wmc", sorter:"number", titleFormatter:"textarea"},
-        {title:"Avg. Depth of\nInheritance Tree(DIT)", field:"dit", sorter:"number", titleFormatter:"textarea"},
-        {title:"Avg. Number of\nchildren (NOC)", field:"noc", sorter:"number", titleFormatter:"textarea"},
-        {title:"Total Access To\nForeign Data(ATFD)", field:"atfd", sorter:"number", titleFormatter:"textarea"},
-        {title:"Total Tight Class\nCohesion(TCC)", field:"tcc", sorter:"number", titleFormatter:"textarea"},
+        {title:"Source Lines\nof Code\n(SLOC)", field:"sloc", sorter:"number", titleFormatter:"textarea"},
+        {title:"Comment\nPercentage\n(CP)", field:"cp", sorter:"number", titleFormatter:"textarea"},
+        {title:"Attribute\nHiding Factor\n(AHF)", field:"ahf", sorter:"number", titleFormatter:"textarea"},
+        {title:"Method\nHiding Factor\n(MHF)", field:"mhf", sorter:"number", titleFormatter:"textarea"},
+        {title:"Avg. Weighted\nMethod per Class\n(WMC)", field:"wmc", sorter:"number", titleFormatter:"textarea"},
+        {title:"Avg. Depth of\nInheritance Tree\n(DIT)", field:"dit", sorter:"number", titleFormatter:"textarea"},
+        {title:"Avg. Number of\nchildren\n(NOC)", field:"noc", sorter:"number", titleFormatter:"textarea"},
+        {title:"Total Access To\nForeign Data\n(ATFD)", field:"atfd", sorter:"number", titleFormatter:"textarea"},
+        {title:"Total Tight Class\nCohesion\n(TCC)", field:"tcc", sorter:"number", titleFormatter:"textarea"},
         // {title:"Success", field:"hasPredicted", formatter:"tickCross", align:"center", width:100}
     ]
 });
