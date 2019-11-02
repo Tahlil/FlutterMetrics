@@ -24,16 +24,16 @@ function displayMetrics(tabledata, customFormatter){
 
 function displayGodClasses(tabledata, id){
   var table = new Tabulator("#"+id, {
-    layout:"fitDataFill",
+    layout:"fitColumns",
     data:tabledata, //load data into table
-    //responsiveLayout:true,
+    responsiveLayout:true,
     columns:[
         {title:"Class Name", field:"className", sorter:"string", titleFormatter:"textarea", variableHeight:true},
-        {title:"Avg. Weighted Method per Class(WMC)", field:"wmc", sorter:"number", titleFormatter:"textarea"},
+        {title:"Avg. Weighted Method per Class (WMC)", field:"wmc", sorter:"number", titleFormatter:"textarea"},
         {title:"WMC >= 47", field:"wmcGte47", sorter:"string", titleFormatter:"textarea", formatter: 'tickCross'},
-        {title:"Access To Foreign Data(ATFD)", field:"atfd", sorter:"number", titleFormatter:"textarea"},
+        {title:"Access To Foreign Data\n(ATFD)", field:"atfd", sorter:"number", titleFormatter:"textarea"},
         {title:"ATFD > 5", field:"atfdGt5", sorter:"string", titleFormatter:"textarea", formatter: 'tickCross'},
-        {title:"Tight Class Cohesion(TCC)", field:"tcc", sorter:"number", titleFormatter:"textarea"},
+        {title:"Tight Class Cohesion\n(TCC)", field:"tcc", sorter:"number", titleFormatter:"textarea"},
         {title:"TCC < 33%", field:"tccLt33", sorter:"string", titleFormatter:"textarea", formatter: 'tickCross'},
         {title:"Is God Class", field:"isGodClass", sorter:"string", titleFormatter:"textarea", formatter: 'tickCross'},
         

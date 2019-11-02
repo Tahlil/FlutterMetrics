@@ -1221,7 +1221,7 @@ const identifyGodClass = function(dartFiles) {
       className: className,
       atfd: atfd,
       wmc: wmc,
-      tcc: (tcc*100).toFixed(2),
+      tcc: (tcc*100).toFixed(2)+"%",
       atfdGt5: atfdGt5,
       wmcGte47: wmcGte47,
       tccLt33: tccLt33,
