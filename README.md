@@ -1,4 +1,5 @@
 # Measuring Software Metrics of a Flutter project
+Detect 15 software metrics(MOOD metrics, CK metrics and Traditional metrics) of flutter project.
 
 ## Run
 
